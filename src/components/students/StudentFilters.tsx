@@ -17,8 +17,8 @@ interface StudentFiltersProps {
 }
 
 export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersProps) {
-  const [classFilter, setClassFilter] = useState("");
-  const [sectionFilter, setSectionFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,10 +37,10 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
   };
 
   const handleReset = () => {
-    setClassFilter("");
-    setSectionFilter("");
+    setClassFilter("all");
+    setSectionFilter("all");
     setSearchQuery("");
-    onFilterChange({ class: "", section: "", query: "" });
+    onFilterChange({ class: "all", section: "all", query: "" });
   };
 
   return (

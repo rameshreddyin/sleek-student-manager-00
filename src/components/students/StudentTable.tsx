@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Table, 
   TableBody, 
@@ -20,6 +21,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   Edit, 
+  Eye,
   FileText, 
   MessageSquare, 
   MoreHorizontal, 
@@ -47,6 +49,7 @@ interface StudentTableProps {
 }
 
 export function StudentTable({ students, onEditStudent }: StudentTableProps) {
+  const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -97,6 +100,10 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
     if (percentage >= 90) return "text-emerald-600";
     if (percentage >= 75) return "text-amber-600";
     return "text-red-600";
+  };
+
+  const handleViewStudent = (student: Student) => {
+    navigate(`/students/${student.id}`);
   };
 
   return (
@@ -154,7 +161,8 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
               sortedStudents.map((student) => (
                 <TableRow 
                   key={student.id} 
-                  className="transition-colors hover:bg-gray-50"
+                  className="transition-colors hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleViewStudent(student)}
                 >
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell>{student.rollNumber}</TableCell>
@@ -169,7 +177,7 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
                   <TableCell className={cn("text-right font-medium", getAttendanceColor(student.attendance))}>
                     {student.attendance}%
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -177,6 +185,10 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => handleViewStudent(student)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          <span>View Profile</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onEditStudent(student)}>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit Profile</span>
