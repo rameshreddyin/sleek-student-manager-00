@@ -109,11 +109,11 @@ export default function StudentManagement() {
   const handleFilterChange = (filters: { class: string; section: string; query: string }) => {
     let result = [...students];
     
-    if (filters.class) {
+    if (filters.class && filters.class !== "all") {
       result = result.filter((student) => student.class === filters.class);
     }
     
-    if (filters.section) {
+    if (filters.section && filters.section !== "all") {
       result = result.filter((student) => student.section === filters.section);
     }
     

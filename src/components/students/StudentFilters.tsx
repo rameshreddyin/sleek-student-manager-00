@@ -62,7 +62,7 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
             <SelectValue placeholder="Class" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Classes</SelectItem>
+            <SelectItem value="all">All Classes</SelectItem>
             <SelectItem value="1">Class 1</SelectItem>
             <SelectItem value="2">Class 2</SelectItem>
             <SelectItem value="3">Class 3</SelectItem>
@@ -76,7 +76,7 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
             <SelectValue placeholder="Section" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Sections</SelectItem>
+            <SelectItem value="all">All Sections</SelectItem>
             <SelectItem value="A">Section A</SelectItem>
             <SelectItem value="B">Section B</SelectItem>
             <SelectItem value="C">Section C</SelectItem>
