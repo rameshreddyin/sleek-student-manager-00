@@ -162,7 +162,7 @@ export default function StudentManagement() {
         class: data.class,
         section: data.section,
         admissionNumber: data.admissionNumber,
-        parentContact: data.parentContact,
+        parentContact: data.parentContact || data.fatherContact || data.motherContact,
         feeStatus: "Pending",
         attendance: 0,
       };
@@ -171,6 +171,8 @@ export default function StudentManagement() {
       setStudents(updatedStudents);
       setFilteredStudents(updatedStudents);
     }
+    
+    setShowAddModal(false);
   };
   
   return (
@@ -224,6 +226,7 @@ export default function StudentManagement() {
           open={showAddModal}
           onClose={handleCloseModal}
           onSubmit={handleSubmitStudent}
+          student={studentToEdit}
         />
       </div>
     </Layout>

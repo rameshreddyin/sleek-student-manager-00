@@ -5,38 +5,38 @@
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 0%;
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
+    --primary: 220 13% 18%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 14.5%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 220 13% 18%;
 
-    --muted: 0 0% 14.5%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 14.5%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 220 13% 18%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 14.5%;
-    --input: 0 0% 14.5%;
-    --ring: 0 0% 83.9%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 40%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 223 47% 11%;
-    --sidebar-foreground: 220 13% 91%;
+    --sidebar-background: 220 13% 18%;
+    --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 223 47% 16%;
@@ -60,7 +60,7 @@
   }
 
   .glass-card {
-    @apply bg-card/90 backdrop-blur-md border border-border/40 shadow-lg;
+    @apply bg-white shadow-lg border border-border/40 backdrop-blur-sm;
   }
 
   .hover-scale {
@@ -68,7 +68,7 @@
   }
 
   .hover-glow {
-    @apply transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)];
+    @apply transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(0,0,0,0.1)];
   }
 
   .animate-enter {

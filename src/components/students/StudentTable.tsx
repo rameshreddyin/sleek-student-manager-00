@@ -83,27 +83,27 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
   const getFeeStatusColor = (status: string) => {
     switch (status) {
       case "Paid":
-        return "bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30";
+        return "bg-emerald-100 text-emerald-700 hover:bg-emerald-200";
       case "Pending":
-        return "bg-red-500/20 text-red-500 hover:bg-red-500/30";
+        return "bg-red-100 text-red-700 hover:bg-red-200";
       case "Partial":
-        return "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30";
+        return "bg-amber-100 text-amber-700 hover:bg-amber-200";
       default:
-        return "bg-gray-500/20 text-gray-500 hover:bg-gray-500/30";
+        return "bg-gray-100 text-gray-700 hover:bg-gray-200";
     }
   };
 
   const getAttendanceColor = (percentage: number) => {
-    if (percentage >= 90) return "text-emerald-500";
-    if (percentage >= 75) return "text-amber-500";
-    return "text-red-500";
+    if (percentage >= 90) return "text-emerald-600";
+    if (percentage >= 75) return "text-amber-600";
+    return "text-red-600";
   };
 
   return (
-    <div className="glass-card rounded-lg overflow-hidden animate-fade-in">
+    <div className="bg-white rounded-lg border overflow-hidden animate-fade-in shadow-sm">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-secondary/50">
+          <TableHeader className="bg-gray-50">
             <TableRow>
               <TableHead 
                 className="w-[250px] cursor-pointer hover:text-primary transition-colors"
@@ -144,58 +144,66 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedStudents.map((student) => (
-              <TableRow 
-                key={student.id} 
-                className="hover-glow hover:bg-secondary/20 transition-colors"
-              >
-                <TableCell className="font-medium">{student.name}</TableCell>
-                <TableCell>{student.rollNumber}</TableCell>
-                <TableCell>{student.class} - {student.section}</TableCell>
-                <TableCell>{student.admissionNumber}</TableCell>
-                <TableCell>{student.parentContact}</TableCell>
-                <TableCell>
-                  <Badge className={cn("font-normal", getFeeStatusColor(student.feeStatus))}>
-                    {student.feeStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell className={cn("text-right", getAttendanceColor(student.attendance))}>
-                  {student.attendance}%
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-popover w-48">
-                      <DropdownMenuItem onClick={() => onEditStudent(student)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Edit Profile</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        <span>Send Message</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Printer className="mr-2 h-4 w-4" />
-                        <span>Generate ID Card</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>View Report Card</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        <span>Transfer Section</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {sortedStudents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  No students found. Try adjusting your filters.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              sortedStudents.map((student) => (
+                <TableRow 
+                  key={student.id} 
+                  className="transition-colors hover:bg-gray-50"
+                >
+                  <TableCell className="font-medium">{student.name}</TableCell>
+                  <TableCell>{student.rollNumber}</TableCell>
+                  <TableCell>{student.class} - {student.section}</TableCell>
+                  <TableCell>{student.admissionNumber}</TableCell>
+                  <TableCell className="whitespace-nowrap">{student.parentContact}</TableCell>
+                  <TableCell>
+                    <Badge className={cn("font-normal", getFeeStatusColor(student.feeStatus))}>
+                      {student.feeStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className={cn("text-right font-medium", getAttendanceColor(student.attendance))}>
+                    {student.attendance}%
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => onEditStudent(student)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Edit Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          <span>Send Message</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Printer className="mr-2 h-4 w-4" />
+                          <span>Generate ID Card</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <FileText className="mr-2 h-4 w-4" />
+                          <span>View Report Card</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <RefreshCcw className="mr-2 h-4 w-4" />
+                          <span>Transfer Section</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

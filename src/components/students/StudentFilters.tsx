@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Filter, Plus, RefreshCw, Search } from "lucide-react";
+import { Download, FileUp, Plus, RefreshCw, Search } from "lucide-react";
 
 interface StudentFiltersProps {
   onAddStudent: () => void;
@@ -96,10 +96,14 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
       
       <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
         <Button variant="outline" className="flex-shrink-0">
+          <FileUp className="mr-2 h-4 w-4" />
+          Import
+        </Button>
+        <Button variant="outline" className="flex-shrink-0">
           <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
-        <Button onClick={onAddStudent} className="bg-sidebar-primary hover:bg-sidebar-primary/90">
+        <Button onClick={onAddStudent} className="bg-primary hover:bg-primary/90 text-white">
           <Plus className="mr-2 h-4 w-4" />
           Add Student
         </Button>
