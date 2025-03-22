@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Header } from "@/components/layout/Header";
 import { StudentFilters } from "@/components/students/StudentFilters";
@@ -7,6 +7,7 @@ import { StudentTable, Student } from "@/components/students/StudentTable";
 import { AddStudentModal } from "@/components/students/AddStudentModal";
 import { StatCard, StatCardGrid } from "@/components/ui/CardStats";
 import { Users, FileCheck, UserPlus, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 // Sample student data
 const studentsData: Student[] = [
@@ -105,6 +106,27 @@ export default function StudentManagement() {
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(studentsData);
   const [showAddModal, setShowAddModal] = useState(false);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  
+  const calculateStats = useCallback(() => {
+    // Calculate attendance rate
+    const totalAttendance = students.reduce((sum, student) => sum + student.attendance, 0);
+    const averageAttendance = students.length > 0 ? (totalAttendance / students.length).toFixed(1) : "0.0";
+    
+    // Calculate fee defaulters
+    const feeDefaulters = students.filter(s => s.feeStatus === "Pending").length;
+    
+    return {
+      totalStudents: students.length,
+      attendanceRate: `${averageAttendance}%`,
+      newAdmissions: 24, // This would be calculated from actual data in a real app
+      feeDefaulters
+    };
+  }, [students]);
+  
+  const stats = calculateStats();
   
   const handleFilterChange = (filters: { class: string; section: string; query: string }) => {
     let result = [...students];
@@ -146,33 +168,108 @@ export default function StudentManagement() {
   };
   
   const handleSubmitStudent = (data: any) => {
-    if (studentToEdit) {
-      // Edit existing student logic
-      const updatedStudents = students.map((student) =>
-        student.id === studentToEdit.id ? { ...student, ...data } : student
-      );
-      setStudents(updatedStudents);
-      setFilteredStudents(updatedStudents);
-    } else {
-      // Add new student logic
-      const newStudent: Student = {
-        id: String(students.length + 1),
-        name: data.name,
-        rollNumber: data.rollNumber,
-        class: data.class,
-        section: data.section,
-        admissionNumber: data.admissionNumber,
-        parentContact: data.parentContact || data.fatherContact || data.motherContact,
-        feeStatus: "Pending",
-        attendance: 0,
-      };
+    try {
+      if (studentToEdit) {
+        // Edit existing student logic
+        const updatedStudents = students.map((student) =>
+          student.id === studentToEdit.id ? { ...student, ...data } : student
+        );
+        setStudents(updatedStudents);
+        setFilteredStudents(updatedStudents);
+        toast.success("Student updated successfully");
+      } else {
+        // Add new student logic
+        const newStudent: Student = {
+          id: String(students.length + 1),
+          name: data.name,
+          rollNumber: data.rollNumber,
+          class: data.class,
+          section: data.section,
+          admissionNumber: data.admissionNumber,
+          parentContact: data.parentContact || data.fatherContact || data.motherContact,
+          feeStatus: "Pending",
+          attendance: 0,
+        };
+        
+        const updatedStudents = [...students, newStudent];
+        setStudents(updatedStudents);
+        setFilteredStudents(updatedStudents);
+        toast.success("Student added successfully");
+      }
       
-      const updatedStudents = [...students, newStudent];
-      setStudents(updatedStudents);
-      setFilteredStudents(updatedStudents);
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Error submitting student:", error);
+      toast.error("Failed to save student data");
     }
+  };
+  
+  const handleRefreshData = async () => {
+    setIsLoading(true);
     
-    setShowAddModal(false);
+    // Simulate network request
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      // In a real app, this would be an API call to refresh data
+      setIsLoading(false);
+      toast.success("Student data refreshed");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast.error("Failed to refresh data");
+      setIsLoading(false);
+    }
+  };
+  
+  const handleImportData = () => {
+    setIsImporting(true);
+    
+    // In a real app, this would trigger a file input dialog
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.xlsx,.xls';
+    fileInput.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          // Simulate processing
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          setIsImporting(false);
+          toast.success("Data imported successfully", {
+            description: `Imported ${file.name} with new student records.`
+          });
+        } catch (error) {
+          console.error("Error importing file:", error);
+          toast.error("Failed to import data");
+          setIsImporting(false);
+        }
+      } else {
+        setIsImporting(false);
+      }
+    };
+    
+    fileInput.onerror = () => {
+      toast.error("Error selecting file");
+      setIsImporting(false);
+    };
+    
+    fileInput.click();
+  };
+  
+  const handleExportData = async () => {
+    setIsExporting(true);
+    
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsExporting(false);
+      toast.success("Data exported successfully", {
+        description: "Student records exported to students_data.xlsx"
+      });
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Failed to export data");
+      setIsExporting(false);
+    }
   };
   
   return (
@@ -186,25 +283,25 @@ export default function StudentManagement() {
         <StatCardGrid>
           <StatCard
             title="Total Students"
-            value={students.length}
+            value={stats.totalStudents}
             icon={<Users className="h-5 w-5" />}
             change={{ value: 4.5, trend: "up", text: "from last month" }}
           />
           <StatCard
             title="Attendance Rate"
-            value="88.5%"
+            value={stats.attendanceRate}
             icon={<FileCheck className="h-5 w-5" />}
             change={{ value: 2.1, trend: "up", text: "from last month" }}
           />
           <StatCard
             title="New Admissions"
-            value="24"
+            value={stats.newAdmissions}
             icon={<UserPlus className="h-5 w-5" />}
             change={{ value: 12.5, trend: "up", text: "from last month" }}
           />
           <StatCard
             title="Fee Defaulters"
-            value="37"
+            value={stats.feeDefaulters}
             icon={<AlertCircle className="h-5 w-5" />}
             change={{ value: 2.3, trend: "down", text: "from last month" }}
           />
@@ -214,11 +311,21 @@ export default function StudentManagement() {
           <StudentFilters
             onAddStudent={handleAddStudent}
             onFilterChange={handleFilterChange}
+            onImport={handleImportData}
+            onExport={handleExportData}
+            isLoading={isLoading || isImporting || isExporting}
           />
           
           <StudentTable
             students={filteredStudents}
             onEditStudent={handleEditStudent}
+            isLoading={isLoading}
+            isRefreshing={isLoading}
+            isImporting={isImporting}
+            isExporting={isExporting}
+            onRefresh={handleRefreshData}
+            onImport={handleImportData}
+            onExport={handleExportData}
           />
         </div>
         

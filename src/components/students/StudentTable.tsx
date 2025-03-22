@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Table, 
@@ -29,7 +29,8 @@ import {
   Printer,
   RefreshCcw,
   RefreshCw,
-  Upload
+  Upload,
+  AlertCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ import { IdCardGenerator } from "./actions/IdCardGenerator";
 import { ReportCardViewer } from "./actions/ReportCardViewer";
 import { SectionTransferDialog } from "./actions/SectionTransferDialog";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface Student {
   id: string;
@@ -54,15 +56,29 @@ export interface Student {
 interface StudentTableProps {
   students: Student[];
   onEditStudent: (student: Student) => void;
+  isLoading?: boolean;
+  isRefreshing?: boolean;
+  isImporting?: boolean;
+  isExporting?: boolean;
+  onRefresh?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
 }
 
-export function StudentTable({ students, onEditStudent }: StudentTableProps) {
+export function StudentTable({ 
+  students, 
+  onEditStudent,
+  isLoading = false,
+  isRefreshing = false,
+  isImporting = false,
+  isExporting = false,
+  onRefresh,
+  onImport,
+  onExport
+}: StudentTableProps) {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   
   // State for action dialogs
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -70,6 +86,17 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
   const [reportCardDialogOpen, setReportCardDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+  // Reset dialogs when component unmounts
+  useEffect(() => {
+    return () => {
+      setMessageDialogOpen(false);
+      setIdCardDialogOpen(false);
+      setReportCardDialogOpen(false);
+      setTransferDialogOpen(false);
+      setSelectedStudent(null);
+    };
+  }, []);
 
   const handleSort = (field: keyof Student) => {
     if (sortField === field) {
@@ -88,8 +115,8 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
     }
     
     return sortDirection === "asc" 
-      ? a[sortField].localeCompare(b[sortField])
-      : b[sortField].localeCompare(a[sortField]);
+      ? String(a[sortField]).localeCompare(String(b[sortField]))
+      : String(b[sortField]).localeCompare(String(a[sortField]));
   });
 
   const renderSortIcon = (field: keyof Student) => {
@@ -125,72 +152,80 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
   };
 
   // Action handlers
-  const handleSendMessage = (student: Student) => {
+  const handleSendMessage = (student: Student, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedStudent(student);
     setMessageDialogOpen(true);
   };
 
-  const handleGenerateIdCard = (student: Student) => {
+  const handleGenerateIdCard = (student: Student, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedStudent(student);
     setIdCardDialogOpen(true);
   };
 
-  const handleViewReportCard = (student: Student) => {
+  const handleViewReportCard = (student: Student, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedStudent(student);
     setReportCardDialogOpen(true);
   };
 
-  const handleTransferSection = (student: Student) => {
+  const handleTransferSection = (student: Student, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedStudent(student);
     setTransferDialogOpen(true);
   };
   
-  // New functionality for refresh, import and export
+  // Refresh, import and export handlers
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    
-    // Simulate refresh operation
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success("Data refreshed", {
-        description: "Student records have been updated with the latest data."
-      });
-    }, 1500);
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      toast.error("Refresh functionality not implemented");
+    }
   };
   
   const handleImport = () => {
-    // In a real app, this would trigger a file input dialog
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.csv,.xlsx,.xls';
-    fileInput.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        setIsImporting(true);
-        
-        // Simulate import process
-        setTimeout(() => {
-          setIsImporting(false);
-          toast.success("Data imported successfully", {
-            description: `Imported ${file.name} with new student records.`
-          });
-        }, 2000);
-      }
-    };
-    fileInput.click();
+    if (onImport) {
+      onImport();
+    } else {
+      toast.error("Import functionality not implemented");
+    }
   };
   
   const handleExport = () => {
-    setIsExporting(true);
-    
-    // Simulate export process
-    setTimeout(() => {
-      setIsExporting(false);
-      toast.success("Data exported successfully", {
-        description: "Student records exported to students_data.xlsx"
-      });
-    }, 1500);
+    if (onExport) {
+      onExport();
+    } else {
+      toast.error("Export functionality not implemented");
+    }
   };
+
+  // Render loading skeletons
+  if (isLoading && students.length === 0) {
+    return (
+      <div className="bg-white rounded-lg border overflow-hidden animate-fade-in shadow-sm">
+        <div className="p-4 border-b flex justify-between items-center">
+          <Skeleton className="h-6 w-40" />
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+        
+        <div className="p-8">
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden animate-fade-in shadow-sm">
@@ -272,8 +307,12 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
           <TableBody>
             {sortedStudents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  No students found. Try adjusting your filters.
+                <TableCell colSpan={8} className="h-[300px] text-center py-8">
+                  <div className="flex flex-col items-center justify-center text-gray-500">
+                    <AlertCircle className="h-12 w-12 mb-4 text-gray-400" />
+                    <p className="text-lg font-medium">No students found</p>
+                    <p className="text-sm text-gray-400 mt-1">Try adjusting your filters or add a new student</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -312,20 +351,20 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit Profile</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSendMessage(student)}>
+                        <DropdownMenuItem onClick={(e) => handleSendMessage(student, e)}>
                           <MessageSquare className="mr-2 h-4 w-4" />
                           <span>Send Message</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleGenerateIdCard(student)}>
+                        <DropdownMenuItem onClick={(e) => handleGenerateIdCard(student, e)}>
                           <Printer className="mr-2 h-4 w-4" />
                           <span>Generate ID Card</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleViewReportCard(student)}>
+                        <DropdownMenuItem onClick={(e) => handleViewReportCard(student, e)}>
                           <FileText className="mr-2 h-4 w-4" />
                           <span>View Report Card</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleTransferSection(student)}>
+                        <DropdownMenuItem onClick={(e) => handleTransferSection(student, e)}>
                           <RefreshCcw className="mr-2 h-4 w-4" />
                           <span>Transfer Section</span>
                         </DropdownMenuItem>

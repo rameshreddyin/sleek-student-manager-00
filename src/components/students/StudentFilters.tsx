@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Select, 
   SelectContent, 
@@ -10,37 +10,84 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, FileUp, Plus, RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface StudentFiltersProps {
   onAddStudent: () => void;
   onFilterChange: (filters: { class: string; section: string; query: string }) => void;
+  onImport?: () => void;
+  onExport?: () => void;
+  isLoading?: boolean;
 }
 
-export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersProps) {
+export function StudentFilters({ 
+  onAddStudent, 
+  onFilterChange, 
+  onImport, 
+  onExport, 
+  isLoading = false 
+}: StudentFiltersProps) {
   const [classFilter, setClassFilter] = useState("all");
   const [sectionFilter, setSectionFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // Debounced filter change
+  const debouncedFilterChange = useCallback(
+    (filters: { class: string; section: string; query: string }) => {
+      setIsFiltering(true);
+      const handler = setTimeout(() => {
+        onFilterChange(filters);
+        setIsFiltering(false);
+      }, 300);
+      
+      return () => {
+        clearTimeout(handler);
+      };
+    },
+    [onFilterChange]
+  );
+
+  useEffect(() => {
+    const filters = { class: classFilter, section: sectionFilter, query: searchQuery };
+    debouncedFilterChange(filters);
+    
+    return () => {};
+  }, [classFilter, sectionFilter, searchQuery, debouncedFilterChange]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    onFilterChange({ class: classFilter, section: sectionFilter, query: e.target.value });
   };
 
   const handleClassChange = (value: string) => {
     setClassFilter(value);
-    onFilterChange({ class: value, section: sectionFilter, query: searchQuery });
   };
 
   const handleSectionChange = (value: string) => {
     setSectionFilter(value);
-    onFilterChange({ class: classFilter, section: value, query: searchQuery });
   };
 
   const handleReset = () => {
     setClassFilter("all");
     setSectionFilter("all");
     setSearchQuery("");
-    onFilterChange({ class: "all", section: "all", query: "" });
+  };
+
+  const handleImport = () => {
+    if (onImport) {
+      onImport();
+    } else {
+      toast.error("Import functionality not implemented");
+    }
+  };
+
+  const handleExport = () => {
+    if (onExport) {
+      onExport();
+    } else {
+      toast.error("Export functionality not implemented");
+    }
   };
 
   return (
@@ -54,10 +101,11 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
             className="pl-9 pr-4"
             value={searchQuery}
             onChange={handleSearchChange}
+            disabled={isLoading}
           />
         </div>
         
-        <Select value={classFilter} onValueChange={handleClassChange}>
+        <Select value={classFilter} onValueChange={handleClassChange} disabled={isLoading}>
           <SelectTrigger className="w-28">
             <SelectValue placeholder="Class" />
           </SelectTrigger>
@@ -71,7 +119,7 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
           </SelectContent>
         </Select>
         
-        <Select value={sectionFilter} onValueChange={handleSectionChange}>
+        <Select value={sectionFilter} onValueChange={handleSectionChange} disabled={isLoading}>
           <SelectTrigger className="w-28">
             <SelectValue placeholder="Section" />
           </SelectTrigger>
@@ -89,21 +137,36 @@ export function StudentFilters({ onAddStudent, onFilterChange }: StudentFiltersP
           className="flex-shrink-0" 
           onClick={handleReset}
           title="Reset filters"
+          disabled={isLoading || (classFilter === "all" && sectionFilter === "all" && searchQuery === "")}
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={cn("h-4 w-4", isFiltering && "animate-spin")} />
         </Button>
       </div>
       
       <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-        <Button variant="outline" className="flex-shrink-0">
+        <Button 
+          variant="outline" 
+          className="flex-shrink-0" 
+          onClick={handleImport}
+          disabled={isLoading}
+        >
           <FileUp className="mr-2 h-4 w-4" />
           Import
         </Button>
-        <Button variant="outline" className="flex-shrink-0">
+        <Button 
+          variant="outline" 
+          className="flex-shrink-0" 
+          onClick={handleExport}
+          disabled={isLoading}
+        >
           <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
-        <Button onClick={onAddStudent} className="bg-primary hover:bg-primary/90 text-white">
+        <Button 
+          onClick={onAddStudent} 
+          className="bg-primary hover:bg-primary/90 text-white"
+          disabled={isLoading}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Student
         </Button>
