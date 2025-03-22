@@ -9,18 +9,23 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, RefreshCw, Search } from "lucide-react";
+import { Download, FileUp, Plus, RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface StudentFiltersProps {
   onAddStudent: () => void;
   onFilterChange: (filters: { class: string; section: string; query: string }) => void;
+  onImport?: () => void;
+  onExport?: () => void;
   isLoading?: boolean;
 }
 
 export function StudentFilters({ 
   onAddStudent, 
   onFilterChange, 
+  onImport, 
+  onExport, 
   isLoading = false 
 }: StudentFiltersProps) {
   const [classFilter, setClassFilter] = useState("all");
@@ -67,6 +72,22 @@ export function StudentFilters({
     setClassFilter("all");
     setSectionFilter("all");
     setSearchQuery("");
+  };
+
+  const handleImport = () => {
+    if (onImport) {
+      onImport();
+    } else {
+      toast.error("Import functionality not implemented");
+    }
+  };
+
+  const handleExport = () => {
+    if (onExport) {
+      onExport();
+    } else {
+      toast.error("Export functionality not implemented");
+    }
   };
 
   return (
@@ -123,6 +144,24 @@ export function StudentFilters({
       </div>
       
       <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <Button 
+          variant="outline" 
+          className="flex-shrink-0" 
+          onClick={handleImport}
+          disabled={isLoading}
+        >
+          <FileUp className="mr-2 h-4 w-4" />
+          Import
+        </Button>
+        <Button 
+          variant="outline" 
+          className="flex-shrink-0" 
+          onClick={handleExport}
+          disabled={isLoading}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
         <Button 
           onClick={onAddStudent} 
           className="bg-primary hover:bg-primary/90 text-white"

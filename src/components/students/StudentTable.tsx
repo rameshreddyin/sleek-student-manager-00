@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { 
   ChevronDown, 
   ChevronUp, 
+  Download,
   Edit, 
   Eye,
   FileText, 
@@ -26,6 +28,8 @@ import {
   MoreHorizontal, 
   Printer,
   RefreshCcw,
+  RefreshCw,
+  Upload,
   AlertCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +40,6 @@ import { ReportCardViewer } from "./actions/ReportCardViewer";
 import { SectionTransferDialog } from "./actions/SectionTransferDialog";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StudentPagination } from "./StudentPagination";
 
 export interface Student {
   id: string;
@@ -48,19 +51,6 @@ export interface Student {
   parentContact: string;
   feeStatus: "Paid" | "Pending" | "Partial";
   attendance: number;
-  transportDetails?: {
-    transportNeeded: boolean;
-    busRoute?: string;
-    busStop?: string;
-    pickupTime?: string;
-    dropTime?: string;
-    monthlyFee?: string;
-    busNumber?: string;
-    distance?: string;
-    busMonitor?: string;
-    driverName?: string;
-    driverContact?: string;
-  };
 }
 
 interface StudentTableProps {
@@ -68,7 +58,11 @@ interface StudentTableProps {
   onEditStudent: (student: Student) => void;
   isLoading?: boolean;
   isRefreshing?: boolean;
+  isImporting?: boolean;
+  isExporting?: boolean;
   onRefresh?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
 }
 
 export function StudentTable({ 
@@ -76,7 +70,11 @@ export function StudentTable({
   onEditStudent,
   isLoading = false,
   isRefreshing = false,
-  onRefresh
+  isImporting = false,
+  isExporting = false,
+  onRefresh,
+  onImport,
+  onExport
 }: StudentTableProps) {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
@@ -88,11 +86,6 @@ export function StudentTable({
   const [reportCardDialogOpen, setReportCardDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
-  const [paginatedStudents, setPaginatedStudents] = useState<Student[]>([]);
 
   // Reset dialogs when component unmounts
   useEffect(() => {
@@ -105,32 +98,6 @@ export function StudentTable({
     };
   }, []);
 
-  // Sort and paginate students
-  useEffect(() => {
-    // Sort students
-    const sorted = [...students].sort((a, b) => {
-      if (sortField === "attendance") {
-        return sortDirection === "asc" 
-          ? a[sortField] - b[sortField] 
-          : b[sortField] - a[sortField];
-      }
-      
-      return sortDirection === "asc" 
-        ? String(a[sortField]).localeCompare(String(b[sortField]))
-        : String(b[sortField]).localeCompare(String(a[sortField]));
-    });
-    
-    // Paginate students
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, sorted.length);
-    setPaginatedStudents(sorted.slice(startIndex, endIndex));
-    
-    // Reset to first page when sort changes or filter changes total count
-    if (currentPage > 1 && startIndex >= sorted.length) {
-      setCurrentPage(1);
-    }
-  }, [students, sortField, sortDirection, currentPage, pageSize]);
-
   const handleSort = (field: keyof Student) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -139,6 +106,18 @@ export function StudentTable({
       setSortDirection("asc");
     }
   };
+
+  const sortedStudents = [...students].sort((a, b) => {
+    if (sortField === "attendance") {
+      return sortDirection === "asc" 
+        ? a[sortField] - b[sortField] 
+        : b[sortField] - a[sortField];
+    }
+    
+    return sortDirection === "asc" 
+      ? String(a[sortField]).localeCompare(String(b[sortField]))
+      : String(b[sortField]).localeCompare(String(a[sortField]));
+  });
 
   const renderSortIcon = (field: keyof Student) => {
     if (sortField !== field) return null;
@@ -197,7 +176,7 @@ export function StudentTable({
     setTransferDialogOpen(true);
   };
   
-  // Refresh handler
+  // Refresh, import and export handlers
   const handleRefresh = () => {
     if (onRefresh) {
       onRefresh();
@@ -206,14 +185,20 @@ export function StudentTable({
     }
   };
   
-  // Pagination handlers
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleImport = () => {
+    if (onImport) {
+      onImport();
+    } else {
+      toast.error("Import functionality not implemented");
+    }
   };
   
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setCurrentPage(1); // Reset to first page when page size changes
+  const handleExport = () => {
+    if (onExport) {
+      onExport();
+    } else {
+      toast.error("Export functionality not implemented");
+    }
   };
 
   // Render loading skeletons
@@ -253,8 +238,26 @@ export function StudentTable({
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCcw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
             {isRefreshing ? "Refreshing..." : "Refresh"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleImport}
+            disabled={isImporting}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isImporting ? "Importing..." : "Import"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export"}
           </Button>
         </div>
       </div>
@@ -302,7 +305,7 @@ export function StudentTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedStudents.length === 0 ? (
+            {sortedStudents.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-[300px] text-center py-8">
                   <div className="flex flex-col items-center justify-center text-gray-500">
@@ -313,7 +316,7 @@ export function StudentTable({
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedStudents.map((student) => (
+              sortedStudents.map((student) => (
                 <TableRow 
                   key={student.id} 
                   className="transition-colors hover:bg-gray-50 cursor-pointer"
@@ -374,15 +377,6 @@ export function StudentTable({
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination */}
-      <StudentPagination
-        totalItems={students.length}
-        pageSize={pageSize}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-      />
 
       {/* Action Dialogs */}
       {selectedStudent && (
