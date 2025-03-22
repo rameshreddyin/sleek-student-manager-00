@@ -6,8 +6,9 @@ import { StudentFilters } from "@/components/students/StudentFilters";
 import { StudentTable, Student } from "@/components/students/StudentTable";
 import { AddStudentModal } from "@/components/students/AddStudentModal";
 import { StatCard, StatCardGrid } from "@/components/ui/CardStats";
-import { Users, FileCheck, UserPlus, AlertCircle } from "lucide-react";
+import { Users, FileCheck, UserPlus, AlertCircle, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 // Sample student data
 const studentsData: Student[] = [
@@ -169,10 +170,29 @@ export default function StudentManagement() {
   
   const handleSubmitStudent = (data: any) => {
     try {
+      // Handle transportation details
+      const transportDetails = data.transportNeeded ? {
+        transportNeeded: true,
+        busRoute: data.busRoute || '',
+        busStop: data.busStop || '',
+        pickupTime: data.pickupTime || '',
+        dropTime: data.dropTime || '',
+        monthlyFee: data.monthlyFee || '',
+        busNumber: data.busNumber || '',
+        distance: data.distance || '',
+        busMonitor: data.busMonitor || '',
+        driverName: data.driverName || '',
+        driverContact: data.driverContact || '',
+      } : { transportNeeded: false };
+      
       if (studentToEdit) {
         // Edit existing student logic
         const updatedStudents = students.map((student) =>
-          student.id === studentToEdit.id ? { ...student, ...data } : student
+          student.id === studentToEdit.id ? { 
+            ...student, 
+            ...data,
+            transportDetails 
+          } : student
         );
         setStudents(updatedStudents);
         setFilteredStudents(updatedStudents);
@@ -189,6 +209,7 @@ export default function StudentManagement() {
           parentContact: data.parentContact || data.fatherContact || data.motherContact,
           feeStatus: "Pending",
           attendance: 0,
+          transportDetails
         };
         
         const updatedStudents = [...students, newStudent];
@@ -280,6 +301,27 @@ export default function StudentManagement() {
       />
       
       <div className="px-6 py-6">
+        <div className="flex justify-end gap-3 mb-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleImportData}
+            disabled={isImporting}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isImporting ? "Importing..." : "Import Students"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportData}
+            disabled={isExporting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export Students"}
+          </Button>
+        </div>
+        
         <StatCardGrid>
           <StatCard
             title="Total Students"
@@ -311,8 +353,6 @@ export default function StudentManagement() {
           <StudentFilters
             onAddStudent={handleAddStudent}
             onFilterChange={handleFilterChange}
-            onImport={handleImportData}
-            onExport={handleExportData}
             isLoading={isLoading || isImporting || isExporting}
           />
           
@@ -321,11 +361,7 @@ export default function StudentManagement() {
             onEditStudent={handleEditStudent}
             isLoading={isLoading}
             isRefreshing={isLoading}
-            isImporting={isImporting}
-            isExporting={isExporting}
             onRefresh={handleRefreshData}
-            onImport={handleImportData}
-            onExport={handleExportData}
           />
         </div>
         
@@ -334,6 +370,7 @@ export default function StudentManagement() {
           onClose={handleCloseModal}
           onSubmit={handleSubmitStudent}
           student={studentToEdit}
+          transportSection={true}
         />
       </div>
     </Layout>
