@@ -20,13 +20,16 @@ import { Button } from "@/components/ui/button";
 import { 
   ChevronDown, 
   ChevronUp, 
+  Download,
   Edit, 
   Eye,
   FileText, 
   MessageSquare, 
   MoreHorizontal, 
-  Printer, 
-  RefreshCcw 
+  Printer,
+  RefreshCcw,
+  RefreshCw,
+  Upload
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -57,6 +60,9 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   // State for action dialogs
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -138,9 +144,89 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
     setSelectedStudent(student);
     setTransferDialogOpen(true);
   };
+  
+  // New functionality for refresh, import and export
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    
+    // Simulate refresh operation
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success("Data refreshed", {
+        description: "Student records have been updated with the latest data."
+      });
+    }, 1500);
+  };
+  
+  const handleImport = () => {
+    // In a real app, this would trigger a file input dialog
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.xlsx,.xls';
+    fileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setIsImporting(true);
+        
+        // Simulate import process
+        setTimeout(() => {
+          setIsImporting(false);
+          toast.success("Data imported successfully", {
+            description: `Imported ${file.name} with new student records.`
+          });
+        }, 2000);
+      }
+    };
+    fileInput.click();
+  };
+  
+  const handleExport = () => {
+    setIsExporting(true);
+    
+    // Simulate export process
+    setTimeout(() => {
+      setIsExporting(false);
+      toast.success("Data exported successfully", {
+        description: "Student records exported to students_data.xlsx"
+      });
+    }, 1500);
+  };
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden animate-fade-in shadow-sm">
+      <div className="p-4 border-b flex justify-between items-center">
+        <h3 className="font-semibold">Student Records</h3>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleImport}
+            disabled={isImporting}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isImporting ? "Importing..." : "Import"}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
+        </div>
+      </div>
+      
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50">
