@@ -30,6 +30,11 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SendMessageDialog } from "./actions/SendMessageDialog";
+import { IdCardGenerator } from "./actions/IdCardGenerator";
+import { ReportCardViewer } from "./actions/ReportCardViewer";
+import { SectionTransferDialog } from "./actions/SectionTransferDialog";
+import { toast } from "sonner";
 
 export interface Student {
   id: string;
@@ -52,6 +57,13 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  
+  // State for action dialogs
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [idCardDialogOpen, setIdCardDialogOpen] = useState(false);
+  const [reportCardDialogOpen, setReportCardDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const handleSort = (field: keyof Student) => {
     if (sortField === field) {
@@ -104,6 +116,27 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
 
   const handleViewStudent = (student: Student) => {
     navigate(`/students/${student.id}`);
+  };
+
+  // Action handlers
+  const handleSendMessage = (student: Student) => {
+    setSelectedStudent(student);
+    setMessageDialogOpen(true);
+  };
+
+  const handleGenerateIdCard = (student: Student) => {
+    setSelectedStudent(student);
+    setIdCardDialogOpen(true);
+  };
+
+  const handleViewReportCard = (student: Student) => {
+    setSelectedStudent(student);
+    setReportCardDialogOpen(true);
+  };
+
+  const handleTransferSection = (student: Student) => {
+    setSelectedStudent(student);
+    setTransferDialogOpen(true);
   };
 
   return (
@@ -193,20 +226,20 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit Profile</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleSendMessage(student)}>
                           <MessageSquare className="mr-2 h-4 w-4" />
                           <span>Send Message</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleGenerateIdCard(student)}>
                           <Printer className="mr-2 h-4 w-4" />
                           <span>Generate ID Card</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewReportCard(student)}>
                           <FileText className="mr-2 h-4 w-4" />
                           <span>View Report Card</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleTransferSection(student)}>
                           <RefreshCcw className="mr-2 h-4 w-4" />
                           <span>Transfer Section</span>
                         </DropdownMenuItem>
@@ -219,6 +252,35 @@ export function StudentTable({ students, onEditStudent }: StudentTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Action Dialogs */}
+      {selectedStudent && (
+        <>
+          <SendMessageDialog 
+            student={selectedStudent}
+            open={messageDialogOpen}
+            onOpenChange={setMessageDialogOpen}
+          />
+          
+          <IdCardGenerator
+            student={selectedStudent}
+            open={idCardDialogOpen}
+            onOpenChange={setIdCardDialogOpen}
+          />
+          
+          <ReportCardViewer
+            student={selectedStudent}
+            open={reportCardDialogOpen}
+            onOpenChange={setReportCardDialogOpen}
+          />
+          
+          <SectionTransferDialog
+            student={selectedStudent}
+            open={transferDialogOpen}
+            onOpenChange={setTransferDialogOpen}
+          />
+        </>
+      )}
     </div>
   );
 }
