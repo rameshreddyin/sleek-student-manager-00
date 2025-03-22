@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { StudentFilters } from "@/components/students/StudentFilters";
 import { StudentTable, Student } from "@/components/students/StudentTable";
 import { AddStudentModal } from "@/components/students/AddStudentModal";
+import { BulkImportForm } from "@/components/students/BulkImportForm";
 import { StatCard, StatCardGrid } from "@/components/ui/CardStats";
 import { Users, FileCheck, UserPlus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -105,6 +106,7 @@ export default function StudentManagement() {
   const [students, setStudents] = useState<Student[]>(studentsData);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(studentsData);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -220,39 +222,49 @@ export default function StudentManagement() {
     }
   };
   
-  const handleImportData = () => {
+  const handleBulkImport = () => {
+    setShowBulkImportModal(true);
+  };
+
+  const handleProcessBulkImport = async (file: File) => {
     setIsImporting(true);
     
-    // In a real app, this would trigger a file input dialog
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.csv,.xlsx,.xls';
-    fileInput.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        try {
-          // Simulate processing
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          setIsImporting(false);
-          toast.success("Data imported successfully", {
-            description: `Imported ${file.name} with new student records.`
-          });
-        } catch (error) {
-          console.error("Error importing file:", error);
-          toast.error("Failed to import data");
-          setIsImporting(false);
-        }
-      } else {
-        setIsImporting(false);
+    try {
+      // Simulate processing the Excel file
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real app, you would parse the Excel file and add the students
+      // For demo purposes, we'll add some dummy students
+      const newStudents: Student[] = [];
+      
+      for (let i = 0; i < 5; i++) {
+        newStudents.push({
+          id: String(students.length + i + 1),
+          name: `Student from Excel ${i+1}`,
+          rollNumber: `BLK${100 + i}`,
+          class: "3",
+          section: "B",
+          admissionNumber: `BULK-2024-${100 + i}`,
+          parentContact: "+91 9988776655",
+          feeStatus: "Pending",
+          attendance: 80,
+        });
       }
-    };
-    
-    fileInput.onerror = () => {
-      toast.error("Error selecting file");
+      
+      const updatedStudents = [...students, ...newStudents];
+      setStudents(updatedStudents);
+      setFilteredStudents(updatedStudents);
+      
       setIsImporting(false);
-    };
-    
-    fileInput.click();
+      toast.success("Students imported successfully", {
+        description: `Imported ${newStudents.length} students from ${file.name}`,
+      });
+      
+    } catch (error) {
+      console.error("Error importing students:", error);
+      toast.error("Failed to import students");
+      setIsImporting(false);
+    }
   };
   
   const handleExportData = async () => {
@@ -311,7 +323,7 @@ export default function StudentManagement() {
           <StudentFilters
             onAddStudent={handleAddStudent}
             onFilterChange={handleFilterChange}
-            onImport={handleImportData}
+            onImport={handleBulkImport}
             onExport={handleExportData}
             isLoading={isLoading || isImporting || isExporting}
           />
@@ -324,7 +336,7 @@ export default function StudentManagement() {
             isImporting={isImporting}
             isExporting={isExporting}
             onRefresh={handleRefreshData}
-            onImport={handleImportData}
+            onImport={handleBulkImport}
             onExport={handleExportData}
           />
         </div>
@@ -334,6 +346,12 @@ export default function StudentManagement() {
           onClose={handleCloseModal}
           onSubmit={handleSubmitStudent}
           student={studentToEdit}
+        />
+
+        <BulkImportForm
+          open={showBulkImportModal}
+          onOpenChange={setShowBulkImportModal}
+          onImport={handleProcessBulkImport}
         />
       </div>
     </Layout>

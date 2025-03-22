@@ -40,6 +40,7 @@ import { ReportCardViewer } from "./actions/ReportCardViewer";
 import { SectionTransferDialog } from "./actions/SectionTransferDialog";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StudentPagination } from "./StudentPagination";
 
 export interface Student {
   id: string;
@@ -79,6 +80,8 @@ export function StudentTable({
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<keyof Student>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 15;
   
   // State for action dialogs
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -97,6 +100,11 @@ export function StudentTable({
       setSelectedStudent(null);
     };
   }, []);
+
+  // Reset to first page when students data changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [students.length]);
 
   const handleSort = (field: keyof Student) => {
     if (sortField === field) {
@@ -118,6 +126,17 @@ export function StudentTable({
       ? String(a[sortField]).localeCompare(String(b[sortField]))
       : String(b[sortField]).localeCompare(String(a[sortField]));
   });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedStudents.length / rowsPerPage);
+  const paginatedStudents = sortedStudents.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const renderSortIcon = (field: keyof Student) => {
     if (sortField !== field) return null;
@@ -189,7 +208,7 @@ export function StudentTable({
     if (onImport) {
       onImport();
     } else {
-      toast.error("Import functionality not implemented");
+      toast.error("Bulk import functionality not implemented");
     }
   };
   
@@ -231,35 +250,6 @@ export function StudentTable({
     <div className="bg-white rounded-lg border overflow-hidden animate-fade-in shadow-sm">
       <div className="p-4 border-b flex justify-between items-center">
         <h3 className="font-semibold">Student Records</h3>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
-            {isRefreshing ? "Refreshing..." : "Refresh"}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleImport}
-            disabled={isImporting}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {isImporting ? "Importing..." : "Import"}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleExport}
-            disabled={isExporting}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isExporting ? "Exporting..." : "Export"}
-          </Button>
-        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -305,7 +295,7 @@ export function StudentTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedStudents.length === 0 ? (
+            {paginatedStudents.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-[300px] text-center py-8">
                   <div className="flex flex-col items-center justify-center text-gray-500">
@@ -316,7 +306,7 @@ export function StudentTable({
                 </TableCell>
               </TableRow>
             ) : (
-              sortedStudents.map((student) => (
+              paginatedStudents.map((student) => (
                 <TableRow 
                   key={student.id} 
                   className="transition-colors hover:bg-gray-50 cursor-pointer"
@@ -376,6 +366,19 @@ export function StudentTable({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="p-4 border-t flex justify-between items-center">
+        <div className="text-sm text-gray-500">
+          Showing {paginatedStudents.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} to{" "}
+          {Math.min(currentPage * rowsPerPage, sortedStudents.length)} of {sortedStudents.length} students
+        </div>
+        <StudentPagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Action Dialogs */}

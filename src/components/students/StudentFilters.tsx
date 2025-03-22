@@ -78,7 +78,7 @@ export function StudentFilters({
     if (onImport) {
       onImport();
     } else {
-      toast.error("Import functionality not implemented");
+      toast.error("Bulk import functionality not implemented");
     }
   };
 
@@ -151,7 +151,7 @@ export function StudentFilters({
           disabled={isLoading}
         >
           <FileUp className="mr-2 h-4 w-4" />
-          Import
+          Bulk Import
         </Button>
         <Button 
           variant="outline" 
